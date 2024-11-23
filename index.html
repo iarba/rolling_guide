@@ -26,9 +26,13 @@
         <option value="-1">none</option>
       </select>
     </form>
+    <form style="display: inline-block;">
+      <div id="flags_form"></div>
+    </form>
     <div id="loading">
       <div id="bar">0%</div>
     </div>
+    
     <img id="board" src="https://i.imgur.com/cliDn19.jpeg" style="float: left; display: block; margin: auto; height: 876px; max-width: 100%; max-height: 100%; width: 100%">
   </body>
   
@@ -168,6 +172,26 @@ var tape_M4S_MT_ADV = [
 {"action": AC_END},
 {"action": AC_END}
 ];
+var flags_EX1_TEST = [
+  {"name": "phase", "values": ["Fire", "Ice", "Lightning"]},
+  {"name": "TEST", "values": ["Test1", "Test2"]}
+];
+var tape_EX1_TEST = [
+{"action": AC_WAIT, time: 5000}, // countdown 17:54 -> 17:59
+//{"action": AC_RENDER, "img": "./img/m4s/nearfar1_OT.png"},
+{"action": AC_RENDER, "img": "./img/m4s/nearfar2_tank.png"},
+{"action": AC_WAIT, time: 93000}, // 17:59 -> 19:32
+{"action": AC_RENDER, "img": "./img/m4s/ee1_MT.png"},
+{"action": AC_WAIT, time: 47000}, // 19:32 -> 20:19
+{"action": AC_RENDER, "img": "./img/m4s/ee2.png"},
+{"action": AC_WAIT, time: 40000}, // 20:19 -> 20:59
+{"action": AC_RENDER, "img": "./img/m4s/side_MT.png"},
+{"action": AC_WAIT, time: 13000}, // 20:59 -> 21:12
+{"action": AC_RENDER, "img": "./img/m4s/ee22.png"},
+{"action": AC_WAIT, time: 24000}, // 21:12 -> 21:36
+{"action": AC_RENDER, "img": "./img/m4s/dn.png"},
+{"action": AC_WAIT, time: 174000}, // 21:36  -> 24:30
+]
 var tapes = [];
 function init_tapes() {
   if(tapes.length == 0)
@@ -176,6 +200,7 @@ function init_tapes() {
     tapes[1] = {name: "M4S MT", tape: tape_M4S_MT};
     tapes[2] = {name: "M4S OT ADV", tape: tape_M4S_OT_ADV};
     tapes[3] = {name: "M4S MT ADV", tape: tape_M4S_MT_ADV};
+    tapes[4] = {name: "Valigarmanda", tape: tape_EX1_TEST, flags: flags_EX1_TEST};
     var select = document.getElementById("tape_to_use");
     for(var i = 0; i < tapes.length; i++)
     {
@@ -198,12 +223,53 @@ function tape_select(i) {
     console.log("using tape " + i + " name [" + tapes[i].name + "]");
     tape = tapes[i].tape;
   }
+  create_flag_dropdowns(tapes[i])
 }
 
+var flags = []
 function tape_to_use_cb() {
   let select = document.getElementById("tape_to_use");
   init();
   tape_select(select.value);
+}
+
+function create_flag_dropdowns(tape) {
+  clear_flag_dropdowns();
+  if (tape?.flags === undefined) {
+    console.log("using empty flags");
+    flags = [];
+  }
+  else {
+    console.log("using flags for " + tape.name);
+    flags = tape.flags;
+    set_flag_dropdowns(flags);
+  }
+}
+
+function clear_flag_dropdowns() {
+  let form = document.getElementById("flags_form");
+  while (form.firstChild) {
+    form.removeChild(form.firstChild);
+  }
+}
+
+function set_flag_dropdowns(flags) {
+  let dropdowns = document.getElementById("flags_form");
+  for(var i = 0; i < flags.length; i++) {
+    let dropdownName = document.createElement("span");
+    dropdownName.innerHTML += (flags[i].name);
+    dropdownName.style.color = "#0f0";
+    dropdowns.appendChild(dropdownName);
+
+    var select = document.createElement('select');
+    for (var j = 0; j < flags[i].values.length; j++) {
+      var option = document.createElement('option');
+      option.text = flags[i].values[j];
+      option.value = j;
+      select.add(option, i);
+    }
+    dropdowns.appendChild(select);
+  }
 }
 
 // bar controller
