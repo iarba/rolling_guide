@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+  <style>
+#loading {
+  width: 100%;
+  background-color: #ddd;
+}
+
+#bar {
+  width: 0%;
+  height: 30px;
+  background-color: #04AA6D;
+  text-align: center;
+  line-height: 30px;
+  color: white;
+}
+  </style>
+  <body style="background: black;" onload="init()">
+	<button style = "background-color: #f00; color: #0ff;" onclick="init()">RESET</button> 
+    <button style = "background-color: #0f0; color: #f0f;" onclick="start_tape()">START</button>
+	<button style = "background-color: #f00; color: #0ff;" onclick="stop_tape()">STOP</button>
+	<button style = "background-color: #000; color: #fff;" onclick="pause_tape()">PAUSE</button>
+	<button style = "background-color: #00f; color: #ff0;" onclick="skip_step()">SKIP</button>
+    <form style="display: inline-block;">
+      <select id="tape_to_use" onChange="tape_to_use_cb()">
+        <option value="-1">none</option>
+      </select>
+    </form>
+    <div id="loading">
+      <div id="bar">0%</div>
+    </div>
+    <img id="board" src="https://i.imgur.com/cliDn19.jpeg" style="float: left; display: block; margin: auto; height: 876px; max-width: 100%; max-height: 100%; width: 100%">
+  </body>
+  
+  <script>
+// constants
+const AC_END = 0;
+const AC_RENDER = 1;
+const AC_WAIT = 2;
+const AC_RESET = 3;
+const TIMER_DELTA = 10; // ms
+
+// tape
+var tape_EMPTY = [
+{"action": AC_RENDER, "img": "https://i.imgur.com/D57b1Uv.jpeg"},
+{"action": AC_END},
+{"action": AC_END}
+];
+var tape_M4S_OT = [
+{"action": AC_WAIT, time: 5000}, // countdown 19:37 -> 19:42
+{"action": AC_RENDER, "img": "./img/m4s/nearfar1_OT.png"},
+{"action": AC_WAIT, time: 57000}, // 19:42 -> 20:39
+{"action": AC_RENDER, "img": "./img/m4s/nearfar2_tank.png"},
+{"action": AC_WAIT, time: 36000}, // 20:39 -> 21:15
+{"action": AC_RENDER, "img": "./img/m4s/ee1_OT.png"},
+{"action": AC_WAIT, time: 47000}, // 21:15 -> 22:02
+{"action": AC_RENDER, "img": "./img/m4s/ee2.png"},
+{"action": AC_WAIT, time: 40000}, // 22:02 -> 22:42
+{"action": AC_RENDER, "img": "./img/m4s/side_OT.png"},
+{"action": AC_WAIT, time: 13000}, // 22:42 -> 22:55
+{"action": AC_RENDER, "img": "./img/m4s/ee22.png"},
+{"action": AC_WAIT, time: 24000}, // 22:42 -> 23:06
+// TODO: rotate DN
+{"action": AC_RENDER, "img": "./img/m4s/dn.png"},
+{"action": AC_WAIT, time: 79000}, // 23:06 -> 24:25
+{"action": AC_RENDER, "img": "./img/common/tankbuster_swap_OT.png"},
+{"action": AC_WAIT, time: 10000}, // 24:25 -> 24:35
+// TODO: last phase of p1
+{"action": AC_RENDER, "img": "https://i.imgur.com/D57b1Uv.jpeg"},
+{"action": AC_END},
+{"action": AC_END}
+];
+var tape_M4S_MT = [
+{"action": AC_WAIT, time: 5000}, // countdown 19:37 -> 19:42
+{"action": AC_RENDER, "img": "./img/m4s/nearfar1_MT.png"},
+{"action": AC_WAIT, time: 57000}, // 19:42 -> 20:39
+{"action": AC_RENDER, "img": "./img/m4s/nearfar2_tank.png"},
+{"action": AC_WAIT, time: 36000}, // 20:39 -> 21:15
+{"action": AC_RENDER, "img": "./img/m4s/ee1_MT.png"},
+{"action": AC_WAIT, time: 47000}, // 21:15 -> 22:02
+{"action": AC_RENDER, "img": "./img/m4s/ee2.png"},
+{"action": AC_WAIT, time: 40000}, // 22:02 -> 22:42
+{"action": AC_RENDER, "img": "./img/m4s/side_MT.png"},
+{"action": AC_WAIT, time: 13000}, // 22:42 -> 22:55
+{"action": AC_RENDER, "img": "./img/m4s/ee22.png"},
+{"action": AC_WAIT, time: 24000}, // 22:42 -> 23:06
+// TODO: rotate DN
+{"action": AC_RENDER, "img": "./img/m4s/dn.png"},
+{"action": AC_WAIT, time: 77000}, // 23:06 -> 24:23
+{"action": AC_RENDER, "img": "./img/common/tankbuster_swap_MT.png"},
+{"action": AC_WAIT, time: 12000}, // 24:23 -> 24:35
+// TODO: last phase of p1
+{"action": AC_RENDER, "img": "https://i.imgur.com/D57b1Uv.jpeg"},
+{"action": AC_END},
+{"action": AC_END}
+];
+var tape_M4S_OT_ADV = [
+{"action": AC_WAIT, time: 5000}, // countdown 17:54 -> 17:59
+//{"action": AC_RENDER, "img": "./img/m4s/nearfar1_OT.png"},
+{"action": AC_RENDER, "img": "./img/m4s/nearfar2_tank.png"},
+{"action": AC_WAIT, time: 93000}, // 17:59 -> 19:32
+{"action": AC_RENDER, "img": "./img/m4s/ee1_OT.png"},
+{"action": AC_WAIT, time: 47000}, // 19:32 -> 20:19
+{"action": AC_RENDER, "img": "./img/m4s/ee2.png"},
+{"action": AC_WAIT, time: 40000}, // 20:19 -> 20:59
+{"action": AC_RENDER, "img": "./img/m4s/side_OT.png"},
+{"action": AC_WAIT, time: 13000}, // 20:59 -> 21:12
+{"action": AC_RENDER, "img": "./img/m4s/ee22.png"},
+{"action": AC_WAIT, time: 24000}, // 21:12 -> 21:36
+{"action": AC_RENDER, "img": "./img/m4s/dn.png"},
+{"action": AC_WAIT, time: 174000}, // 21:36  -> 24:30
+// p2 start
+{"action": AC_RENDER, "img": "./img/m4s/LB_move_right.png"},
+{"action": AC_WAIT, time: 40000}, // 24:30  -> 25:10
+{"action": AC_RENDER, "img": "./img/m4s/look_boss_mustard.png"},
+{"action": AC_WAIT, time: 60000}, // 25:10  -> 26:10
+{"action": AC_RENDER, "img": "./img/m4s/twilight.png"},
+{"action": AC_WAIT, time: 40000}, // 26:10  -> 26:50
+{"action": AC_RENDER, "img": "./img/m4s/midnight.png"},
+{"action": AC_WAIT, time: 37000}, // 26:50  -> 27:27
+{"action": AC_RENDER, "img": "./img/m4s/swords.png"},
+{"action": AC_WAIT, time: 63000}, // 27:27  -> 28:30
+{"action": AC_RENDER, "img": "./img/m4s/look_boss_mustard.png"},
+{"action": AC_WAIT, time: 35000}, // 28:30  -> 29:05
+{"action": AC_RENDER, "img": "./img/m4s/sunrise_normal.png"},
+{"action": AC_WAIT, time: 90000}, // 28:30  -> 30:00?
+{"action": AC_RENDER, "img": "./img/m4s/enrage.png"},
+{"action": AC_WAIT, time: 90000}, // 30:00? -> ???
+// TODO: last phase of p1
+{"action": AC_RENDER, "img": "https://i.imgur.com/D57b1Uv.jpeg"},
+{"action": AC_END},
+{"action": AC_END}
+];
+var tape_M4S_MT_ADV = [
+{"action": AC_WAIT, time: 5000}, // countdown 17:54 -> 17:59
+//{"action": AC_RENDER, "img": "./img/m4s/nearfar1_OT.png"},
+{"action": AC_RENDER, "img": "./img/m4s/nearfar2_tank.png"},
+{"action": AC_WAIT, time: 93000}, // 17:59 -> 19:32
+{"action": AC_RENDER, "img": "./img/m4s/ee1_MT.png"},
+{"action": AC_WAIT, time: 47000}, // 19:32 -> 20:19
+{"action": AC_RENDER, "img": "./img/m4s/ee2.png"},
+{"action": AC_WAIT, time: 40000}, // 20:19 -> 20:59
+{"action": AC_RENDER, "img": "./img/m4s/side_MT.png"},
+{"action": AC_WAIT, time: 13000}, // 20:59 -> 21:12
+{"action": AC_RENDER, "img": "./img/m4s/ee22.png"},
+{"action": AC_WAIT, time: 24000}, // 21:12 -> 21:36
+{"action": AC_RENDER, "img": "./img/m4s/dn.png"},
+{"action": AC_WAIT, time: 174000}, // 21:36  -> 24:30
+// p2 start
+{"action": AC_RENDER, "img": "./img/m4s/LB_move_right.png"},
+{"action": AC_WAIT, time: 40000}, // 24:30  -> 25:10
+{"action": AC_RENDER, "img": "./img/m4s/look_boss_mustard.png"},
+{"action": AC_WAIT, time: 60000}, // 25:10  -> 26:10
+{"action": AC_RENDER, "img": "./img/m4s/twilight.png"},
+{"action": AC_WAIT, time: 40000}, // 26:10  -> 26:50
+{"action": AC_RENDER, "img": "./img/m4s/midnight.png"},
+{"action": AC_WAIT, time: 37000}, // 26:50  -> 27:27
+{"action": AC_RENDER, "img": "./img/m4s/swords.png"},
+{"action": AC_WAIT, time: 63000}, // 27:27  -> 28:30
+{"action": AC_RENDER, "img": "./img/m4s/look_boss_mustard.png"},
+{"action": AC_WAIT, time: 35000}, // 28:30  -> 29:05
+{"action": AC_RENDER, "img": "./img/m4s/sunrise_normal.png"},
+{"action": AC_WAIT, time: 90000}, // 28:30  -> 30:00?
+{"action": AC_RENDER, "img": "./img/m4s/enrage.png"},
+{"action": AC_WAIT, time: 90000}, // 30:00? -> ???
+// TODO: last phase of p1
+{"action": AC_RENDER, "img": "https://i.imgur.com/D57b1Uv.jpeg"},
+{"action": AC_END},
+{"action": AC_END}
+];
+var tapes = [];
+function init_tapes() {
+  if(tapes.length == 0)
+  {
+    tapes[0] = {name: "M4S OT", tape: tape_M4S_OT};
+    tapes[1] = {name: "M4S MT", tape: tape_M4S_MT};
+    tapes[2] = {name: "M4S OT ADV", tape: tape_M4S_OT_ADV};
+    tapes[3] = {name: "M4S MT ADV", tape: tape_M4S_MT_ADV};
+    var select = document.getElementById("tape_to_use");
+    for(var i = 0; i < tapes.length; i++)
+    {
+      var option = document.createElement('option');
+      option.text = tapes[i].name;
+      option.value = i;
+      select.add(option, 0);
+    }
+  }
+}
+var tape = tape_EMPTY;
+function tape_select(i) {
+  if(i == -1)
+  {
+    console.log("using empty tape");
+    tape = tape_EMPTY;
+  }
+  else
+  {
+    console.log("using tape " + i + " name [" + tapes[i].name + "]");
+    tape = tapes[i].tape;
+  }
+}
+
+function tape_to_use_cb() {
+  let select = document.getElementById("tape_to_use");
+  init();
+  tape_select(select.value);
+}
+
+// bar controller
+var bar = document.getElementById("bar");
+function bar_set(percentage) {
+  p = Math.floor(percentage);
+  bar.style.width = p + "%";
+  bar.innerHTML = p + "%";
+}
+
+function reset() {
+  document.getElementById('board').src = "https://i.imgur.com/cliDn19.jpeg";
+  bar_set(0);
+}
+
+function init() {
+  init_tapes();
+  active_tape = 0;
+  step_skipped = false;
+  tape_paused = false;
+  reset();
+}
+
+// tape manipulator
+var step_skipped = false;
+var tape_paused = false;
+var active_tape = 0;
+function move_tape(current_tape, tape_index, last_now, delta) {
+  if(current_tape != active_tape) {
+    return; // tape was stopped
+  }
+  var NOW = Date.now();
+  var snapshot = tape[tape_index];
+  switch(snapshot.action) {
+    case AC_END:
+	  active_tape = 0;
+	  console.error("OK");
+	  return;
+	case AC_RENDER:
+	  document.getElementById('board').src = snapshot.img;
+	  break;
+	case AC_WAIT:
+	  if(step_skipped) {
+	    delta = snapshot.time + 1;
+	  }
+	  else {
+	    if(!tape_paused) {
+	      delta = delta + NOW - last_now;
+		}
+	  }
+	  step_skipped = false;
+	  bar_set((delta * 100) / snapshot.time);
+	  if(delta <= snapshot.time) {
+	    setTimeout(move_tape, TIMER_DELTA, current_tape, tape_index, NOW, delta);
+	    return;
+	  }
+	  break;
+	case AC_RESET:
+	  reset();
+	  break;
+	default:
+	  console.error("unrecognised action ", snapshot.action);
+	  return;
+  }
+  move_tape(current_tape, tape_index + 1, NOW, 0);
+}
+var last_tape_id = 0;
+function start_tape () {
+  init();
+  last_tape_id = last_tape_id + 1;
+  active_tape = last_tape_id;
+  move_tape(last_tape_id, 0, Date.now(), 0);
+};
+function stop_tape () {
+  active_tape = 0;
+}
+function skip_step () {
+  step_skipped = true;
+}
+
+function pause_tape () {
+  tape_paused = !tape_paused;
+}
+</script>
+</html>
