@@ -216,7 +216,7 @@ function flag_configure(flag_config) {
   if(flag_config) {
     flag_config.forEach(e => { 
       flag_data.list.push(e.name);
-	  flag_data.defval[e.name] = e.default
+      flag_data.defval[e.name] = e.default
 	})
   }
   flag_reset();
@@ -259,7 +259,7 @@ function tape_select(i) {
   {
     console.log("using tape " + i + " name [" + tapes[i].name + "]");
     tape = tapes[i].tape;
-	flag_configure(tapes[i].flags);
+    flag_configure(tapes[i].flags);
     create_flag_dropdowns(tapes[i])
   }
 }
@@ -305,8 +305,8 @@ function set_flag_dropdowns(flags) {
     dropdowns.appendChild(dropdownName);
 
     var select = document.createElement('select');
-	select.onchange = flag_dropdown_cb.bind(null, flags[i].name); //"flag_dropdown_cb(\"" + flags[i].name + "\")"
-	select.id = "flag_dropdown_id_" + flags[i].name;
+    select.onchange = flag_dropdown_cb.bind(null, flags[i].name); //"flag_dropdown_cb(\"" + flags[i].name + "\")"
+    select.id = "flag_dropdown_id_" + flags[i].name;
     for (var j = 0; j < flags[i].values.length; j++) {
       var option = document.createElement('option');
       option.text = flags[i].values[j];
