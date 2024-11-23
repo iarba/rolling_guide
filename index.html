@@ -16,7 +16,7 @@
 }
   </style>
   <body style="background: black;" onload="init()">
-	<button style = "background-color: #f00; color: #0ff;" onclick="init()">RESET</button> 
+	<button style = "background-color: #f00; color: #0ff;" onclick="reset()">RESET</button> 
     <button style = "background-color: #0f0; color: #f0f;" onclick="start_tape()">START</button>
 	<button style = "background-color: #f00; color: #0ff;" onclick="stop_tape()">STOP</button>
 	<button style = "background-color: #000; color: #fff;" onclick="pause_tape()">PAUSE</button>
@@ -173,25 +173,61 @@ var tape_M4S_MT_ADV = [
 {"action": AC_END}
 ];
 var flags_EX1_TEST = [
-  {"name": "phase", "values": ["Fire", "Ice", "Lightning"]},
-  {"name": "TEST", "values": ["Test1", "Test2"]}
+  {"name": "phase", "values": ["Fire", "Ice", "Lightning"], "default": "Fire"},
+  {"name": "TEST", "values": ["Test1", "Test2"], "default": "Test1"}
 ];
 var tape_EX1_TEST = [
-{"action": AC_WAIT, time: 5000}, // countdown 17:54 -> 17:59
-//{"action": AC_RENDER, "img": "./img/m4s/nearfar1_OT.png"},
-{"action": AC_RENDER, "img": "./img/m4s/nearfar2_tank.png"},
-{"action": AC_WAIT, time: 93000}, // 17:59 -> 19:32
-{"action": AC_RENDER, "img": "./img/m4s/ee1_MT.png"},
-{"action": AC_WAIT, time: 47000}, // 19:32 -> 20:19
-{"action": AC_RENDER, "img": "./img/m4s/ee2.png"},
-{"action": AC_WAIT, time: 40000}, // 20:19 -> 20:59
-{"action": AC_RENDER, "img": "./img/m4s/side_MT.png"},
-{"action": AC_WAIT, time: 13000}, // 20:59 -> 21:12
-{"action": AC_RENDER, "img": "./img/m4s/ee22.png"},
-{"action": AC_WAIT, time: 24000}, // 21:12 -> 21:36
-{"action": AC_RENDER, "img": "./img/m4s/dn.png"},
-{"action": AC_WAIT, time: 174000}, // 21:36  -> 24:30
+{"action": AC_WAIT, time: 5000},
+{"action": AC_RENDER, "img": "https://i.imgur.com/Y1FQH4V.png"},
+{"action": AC_WAIT, time: 15000},
+{"action": AC_RENDER, "img": "https://i.imgur.com/wMKE14s.jpeg", "cond": {"flag": "phase", "value": "Fire"}},
+{"action": AC_RENDER, "img": "https://i.imgur.com/ij9GR7Q.jpeg", "cond": {"flag": "phase", "value": "Ice"}},
+{"action": AC_RENDER, "img": "https://i.imgur.com/K0BNeSw.jpeg", "cond": {"flag": "phase", "value": "Lightning"}},
+{"action": AC_WAIT, time: 15000},
+{"action": AC_RENDER, "img": "https://i.imgur.com/wMKE14s.jpeg", "cond": {"flag": "phase", "value": "Fire"}},
+{"action": AC_RENDER, "img": "https://i.imgur.com/ij9GR7Q.jpeg", "cond": {"flag": "phase", "value": "Ice"}},
+{"action": AC_RENDER, "img": "https://i.imgur.com/K0BNeSw.jpeg", "cond": {"flag": "phase", "value": "Lightning"}},
+{"action": AC_WAIT, time: 15000},
+{"action": AC_RENDER, "img": "https://i.imgur.com/wMKE14s.jpeg", "cond": {"flag": "phase", "value": "Fire"}},
+{"action": AC_RENDER, "img": "https://i.imgur.com/ij9GR7Q.jpeg", "cond": {"flag": "phase", "value": "Ice"}},
+{"action": AC_RENDER, "img": "https://i.imgur.com/K0BNeSw.jpeg", "cond": {"flag": "phase", "value": "Lightning"}},
+{"action": AC_WAIT, time: 15000},
+{"action": AC_RENDER, "img": "https://i.imgur.com/wMKE14s.jpeg", "cond": {"flag": "phase", "value": "Fire"}},
+{"action": AC_RENDER, "img": "https://i.imgur.com/ij9GR7Q.jpeg", "cond": {"flag": "phase", "value": "Ice"}},
+{"action": AC_RENDER, "img": "https://i.imgur.com/K0BNeSw.jpeg", "cond": {"flag": "phase", "value": "Lightning"}},
+{"action": AC_WAIT, time: 47000},
+{"action": AC_END},
+{"action": AC_END}
 ]
+
+// flag storage module
+var flag_data = {}
+
+function flag_init() {
+  flag_data = { list: [], values: {}, defval: {}};
+}
+function flag_reset() {
+  flag_data.list.forEach(e => { 
+	flag_data.values[e] = flag_data.defval[e];
+  });
+}
+function flag_configure(flag_config) {
+  flag_init()
+  if(flag_config) {
+    flag_config.forEach(e => { 
+      flag_data.list.push(e.name);
+      flag_data.defval[e.name] = e.default
+	})
+  }
+  flag_reset();
+}
+function flag_set(flag_name, flag_value) {
+  flag_data.values[flag_name] = flag_value;
+}
+function flag_get(flag_name) {
+  return flag_data.values[flag_name];
+}
+
 var tapes = [];
 function init_tapes() {
   if(tapes.length == 0)
@@ -213,6 +249,7 @@ function init_tapes() {
 }
 var tape = tape_EMPTY;
 function tape_select(i) {
+  reset();
   if(i == -1)
   {
     console.log("using empty tape");
@@ -222,16 +259,22 @@ function tape_select(i) {
   {
     console.log("using tape " + i + " name [" + tapes[i].name + "]");
     tape = tapes[i].tape;
+    flag_configure(tapes[i].flags);
+    create_flag_dropdowns(tapes[i])
   }
-  create_flag_dropdowns(tapes[i])
+}
+
+function tape_to_use_cb() {
+  let select = document.getElementById("tape_to_use");
+  tape_select(select.value);
+}
+
+function flag_dropdown_cb(flag_name){
+  let select = document.getElementById("flag_dropdown_id_" + flag_name);
+  flag_set(flag_name, select[select.value].text);
 }
 
 var flags = []
-function tape_to_use_cb() {
-  let select = document.getElementById("tape_to_use");
-  init();
-  tape_select(select.value);
-}
 
 function create_flag_dropdowns(tape) {
   clear_flag_dropdowns();
@@ -262,11 +305,13 @@ function set_flag_dropdowns(flags) {
     dropdowns.appendChild(dropdownName);
 
     var select = document.createElement('select');
+    select.onchange = flag_dropdown_cb.bind(null, flags[i].name); //"flag_dropdown_cb(\"" + flags[i].name + "\")"
+    select.id = "flag_dropdown_id_" + flags[i].name;
     for (var j = 0; j < flags[i].values.length; j++) {
       var option = document.createElement('option');
       option.text = flags[i].values[j];
       option.value = j;
-      select.add(option, i);
+      select.add(option, j);
     }
     dropdowns.appendChild(select);
   }
@@ -282,14 +327,16 @@ function bar_set(percentage) {
 
 function reset() {
   document.getElementById('board').src = "https://i.imgur.com/cliDn19.jpeg";
+  active_tape = 0;
+  step_skipped = false;
+  tape_paused = false;
   bar_set(0);
+  flag_reset();
 }
 
 function init() {
   init_tapes();
-  active_tape = 0;
-  step_skipped = false;
-  tape_paused = false;
+  flag_init();
   reset();
 }
 
@@ -297,6 +344,20 @@ function init() {
 var step_skipped = false;
 var tape_paused = false;
 var active_tape = 0;
+
+function cond_check(snapshot) {
+  var condition = snapshot.cond;
+  if(condition)
+  {
+    // we have a condition
+    flag_value = flag_get(condition.flag);
+    flag_desired_value = condition.value;
+    return flag_value == flag_desired_value;
+  }
+  // if no condition is set, always pass conditional
+  return true;
+}
+
 function move_tape(current_tape, tape_index, last_now, delta) {
   if(current_tape != active_tape) {
     return; // tape was stopped
@@ -309,7 +370,10 @@ function move_tape(current_tape, tape_index, last_now, delta) {
 	  console.error("OK");
 	  return;
 	case AC_RENDER:
-	  document.getElementById('board').src = snapshot.img;
+	  if(cond_check(snapshot))
+	  {
+	    document.getElementById('board').src = snapshot.img;
+	  }
 	  break;
 	case AC_WAIT:
 	  if(step_skipped) {
@@ -336,9 +400,10 @@ function move_tape(current_tape, tape_index, last_now, delta) {
   }
   move_tape(current_tape, tape_index + 1, NOW, 0);
 }
+
 var last_tape_id = 0;
 function start_tape () {
-  init();
+  reset();
   last_tape_id = last_tape_id + 1;
   active_tape = last_tape_id;
   move_tape(last_tape_id, 0, Date.now(), 0);
