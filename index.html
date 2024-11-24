@@ -1,5 +1,14 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <script src="./config/constants.js"></script>
+    <script src="./tapes/Empty_Tape.js"></script>
+    <script src="./tapes/M4S/M4S_MT.js"></script>
+    <script src="./tapes/M4S/M4S_OT.js"></script>  
+    <script src="./tapes/M4S/M4S_MT_ADV.js"></script>  
+    <script src="./tapes/M4S/M4S_OT_ADV.js"></script>  
+    <script src="./tapes/EX1/EX1.js"></script>   
+  </head>
   <style>
 #loading {
   width: 100%;
@@ -35,171 +44,8 @@
     
     <img id="board" src="https://i.imgur.com/cliDn19.jpeg" style="float: left; display: block; margin: auto; height: 876px; max-width: 100%; max-height: 100%; width: 100%">
   </body>
-  
-  <script>
-// constants
-const AC_END = 0;
-const AC_RENDER = 1;
-const AC_WAIT = 2;
-const AC_RESET = 3;
-const TIMER_DELTA = 10; // ms
 
-// tape
-var tape_EMPTY = [
-{"action": AC_RENDER, "img": "https://i.imgur.com/D57b1Uv.jpeg"},
-{"action": AC_END},
-{"action": AC_END}
-];
-var tape_M4S_OT = [
-{"action": AC_WAIT, time: 5000}, // countdown 19:37 -> 19:42
-{"action": AC_RENDER, "img": "./img/m4s/nearfar1_OT.png"},
-{"action": AC_WAIT, time: 57000}, // 19:42 -> 20:39
-{"action": AC_RENDER, "img": "./img/m4s/nearfar2_tank.png"},
-{"action": AC_WAIT, time: 36000}, // 20:39 -> 21:15
-{"action": AC_RENDER, "img": "./img/m4s/ee1_OT.png"},
-{"action": AC_WAIT, time: 47000}, // 21:15 -> 22:02
-{"action": AC_RENDER, "img": "./img/m4s/ee2.png"},
-{"action": AC_WAIT, time: 40000}, // 22:02 -> 22:42
-{"action": AC_RENDER, "img": "./img/m4s/side_OT.png"},
-{"action": AC_WAIT, time: 13000}, // 22:42 -> 22:55
-{"action": AC_RENDER, "img": "./img/m4s/ee22.png"},
-{"action": AC_WAIT, time: 24000}, // 22:42 -> 23:06
-// TODO: rotate DN
-{"action": AC_RENDER, "img": "./img/m4s/dn.png"},
-{"action": AC_WAIT, time: 79000}, // 23:06 -> 24:25
-{"action": AC_RENDER, "img": "./img/common/tankbuster_swap_OT.png"},
-{"action": AC_WAIT, time: 10000}, // 24:25 -> 24:35
-// TODO: last phase of p1
-{"action": AC_RENDER, "img": "https://i.imgur.com/D57b1Uv.jpeg"},
-{"action": AC_END},
-{"action": AC_END}
-];
-var tape_M4S_MT = [
-{"action": AC_WAIT, time: 5000}, // countdown 19:37 -> 19:42
-{"action": AC_RENDER, "img": "./img/m4s/nearfar1_MT.png"},
-{"action": AC_WAIT, time: 57000}, // 19:42 -> 20:39
-{"action": AC_RENDER, "img": "./img/m4s/nearfar2_tank.png"},
-{"action": AC_WAIT, time: 36000}, // 20:39 -> 21:15
-{"action": AC_RENDER, "img": "./img/m4s/ee1_MT.png"},
-{"action": AC_WAIT, time: 47000}, // 21:15 -> 22:02
-{"action": AC_RENDER, "img": "./img/m4s/ee2.png"},
-{"action": AC_WAIT, time: 40000}, // 22:02 -> 22:42
-{"action": AC_RENDER, "img": "./img/m4s/side_MT.png"},
-{"action": AC_WAIT, time: 13000}, // 22:42 -> 22:55
-{"action": AC_RENDER, "img": "./img/m4s/ee22.png"},
-{"action": AC_WAIT, time: 24000}, // 22:42 -> 23:06
-// TODO: rotate DN
-{"action": AC_RENDER, "img": "./img/m4s/dn.png"},
-{"action": AC_WAIT, time: 77000}, // 23:06 -> 24:23
-{"action": AC_RENDER, "img": "./img/common/tankbuster_swap_MT.png"},
-{"action": AC_WAIT, time: 12000}, // 24:23 -> 24:35
-// TODO: last phase of p1
-{"action": AC_RENDER, "img": "https://i.imgur.com/D57b1Uv.jpeg"},
-{"action": AC_END},
-{"action": AC_END}
-];
-var tape_M4S_OT_ADV = [
-{"action": AC_WAIT, time: 5000}, // countdown 17:54 -> 17:59
-//{"action": AC_RENDER, "img": "./img/m4s/nearfar1_OT.png"},
-{"action": AC_RENDER, "img": "./img/m4s/nearfar2_tank.png"},
-{"action": AC_WAIT, time: 93000}, // 17:59 -> 19:32
-{"action": AC_RENDER, "img": "./img/m4s/ee1_OT.png"},
-{"action": AC_WAIT, time: 47000}, // 19:32 -> 20:19
-{"action": AC_RENDER, "img": "./img/m4s/ee2.png"},
-{"action": AC_WAIT, time: 40000}, // 20:19 -> 20:59
-{"action": AC_RENDER, "img": "./img/m4s/side_OT.png"},
-{"action": AC_WAIT, time: 13000}, // 20:59 -> 21:12
-{"action": AC_RENDER, "img": "./img/m4s/ee22.png"},
-{"action": AC_WAIT, time: 24000}, // 21:12 -> 21:36
-{"action": AC_RENDER, "img": "./img/m4s/dn.png"},
-{"action": AC_WAIT, time: 174000}, // 21:36  -> 24:30
-// p2 start
-{"action": AC_RENDER, "img": "./img/m4s/LB_move_right.png"},
-{"action": AC_WAIT, time: 40000}, // 24:30  -> 25:10
-{"action": AC_RENDER, "img": "./img/m4s/look_boss_mustard.png"},
-{"action": AC_WAIT, time: 60000}, // 25:10  -> 26:10
-{"action": AC_RENDER, "img": "./img/m4s/twilight.png"},
-{"action": AC_WAIT, time: 40000}, // 26:10  -> 26:50
-{"action": AC_RENDER, "img": "./img/m4s/midnight.png"},
-{"action": AC_WAIT, time: 37000}, // 26:50  -> 27:27
-{"action": AC_RENDER, "img": "./img/m4s/swords.png"},
-{"action": AC_WAIT, time: 63000}, // 27:27  -> 28:30
-{"action": AC_RENDER, "img": "./img/m4s/look_boss_mustard.png"},
-{"action": AC_WAIT, time: 35000}, // 28:30  -> 29:05
-{"action": AC_RENDER, "img": "./img/m4s/sunrise_normal.png"},
-{"action": AC_WAIT, time: 90000}, // 28:30  -> 30:00?
-{"action": AC_RENDER, "img": "./img/m4s/enrage.png"},
-{"action": AC_WAIT, time: 90000}, // 30:00? -> ???
-// TODO: last phase of p1
-{"action": AC_RENDER, "img": "https://i.imgur.com/D57b1Uv.jpeg"},
-{"action": AC_END},
-{"action": AC_END}
-];
-var tape_M4S_MT_ADV = [
-{"action": AC_WAIT, time: 5000}, // countdown 17:54 -> 17:59
-//{"action": AC_RENDER, "img": "./img/m4s/nearfar1_OT.png"},
-{"action": AC_RENDER, "img": "./img/m4s/nearfar2_tank.png"},
-{"action": AC_WAIT, time: 93000}, // 17:59 -> 19:32
-{"action": AC_RENDER, "img": "./img/m4s/ee1_MT.png"},
-{"action": AC_WAIT, time: 47000}, // 19:32 -> 20:19
-{"action": AC_RENDER, "img": "./img/m4s/ee2.png"},
-{"action": AC_WAIT, time: 40000}, // 20:19 -> 20:59
-{"action": AC_RENDER, "img": "./img/m4s/side_MT.png"},
-{"action": AC_WAIT, time: 13000}, // 20:59 -> 21:12
-{"action": AC_RENDER, "img": "./img/m4s/ee22.png"},
-{"action": AC_WAIT, time: 24000}, // 21:12 -> 21:36
-{"action": AC_RENDER, "img": "./img/m4s/dn.png"},
-{"action": AC_WAIT, time: 174000}, // 21:36  -> 24:30
-// p2 start
-{"action": AC_RENDER, "img": "./img/m4s/LB_move_right.png"},
-{"action": AC_WAIT, time: 40000}, // 24:30  -> 25:10
-{"action": AC_RENDER, "img": "./img/m4s/look_boss_mustard.png"},
-{"action": AC_WAIT, time: 60000}, // 25:10  -> 26:10
-{"action": AC_RENDER, "img": "./img/m4s/twilight.png"},
-{"action": AC_WAIT, time: 40000}, // 26:10  -> 26:50
-{"action": AC_RENDER, "img": "./img/m4s/midnight.png"},
-{"action": AC_WAIT, time: 37000}, // 26:50  -> 27:27
-{"action": AC_RENDER, "img": "./img/m4s/swords.png"},
-{"action": AC_WAIT, time: 63000}, // 27:27  -> 28:30
-{"action": AC_RENDER, "img": "./img/m4s/look_boss_mustard.png"},
-{"action": AC_WAIT, time: 35000}, // 28:30  -> 29:05
-{"action": AC_RENDER, "img": "./img/m4s/sunrise_normal.png"},
-{"action": AC_WAIT, time: 90000}, // 28:30  -> 30:00?
-{"action": AC_RENDER, "img": "./img/m4s/enrage.png"},
-{"action": AC_WAIT, time: 90000}, // 30:00? -> ???
-// TODO: last phase of p1
-{"action": AC_RENDER, "img": "https://i.imgur.com/D57b1Uv.jpeg"},
-{"action": AC_END},
-{"action": AC_END}
-];
-var flags_EX1_TEST = [
-  {"name": "phase", "values": ["Fire", "Ice", "Lightning"], "default": "Fire"},
-  {"name": "TEST", "values": ["Test1", "Test2"], "default": "Test1"}
-];
-var tape_EX1_TEST = [
-{"action": AC_WAIT, time: 5000},
-{"action": AC_RENDER, "img": "https://i.imgur.com/Y1FQH4V.png"},
-{"action": AC_WAIT, time: 15000},
-{"action": AC_RENDER, "img": "https://i.imgur.com/wMKE14s.jpeg", "cond": {"flag": "phase", "value": "Fire"}},
-{"action": AC_RENDER, "img": "https://i.imgur.com/ij9GR7Q.jpeg", "cond": {"flag": "phase", "value": "Ice"}},
-{"action": AC_RENDER, "img": "https://i.imgur.com/K0BNeSw.jpeg", "cond": {"flag": "phase", "value": "Lightning"}},
-{"action": AC_WAIT, time: 15000},
-{"action": AC_RENDER, "img": "https://i.imgur.com/wMKE14s.jpeg", "cond": {"flag": "phase", "value": "Fire"}},
-{"action": AC_RENDER, "img": "https://i.imgur.com/ij9GR7Q.jpeg", "cond": {"flag": "phase", "value": "Ice"}},
-{"action": AC_RENDER, "img": "https://i.imgur.com/K0BNeSw.jpeg", "cond": {"flag": "phase", "value": "Lightning"}},
-{"action": AC_WAIT, time: 15000},
-{"action": AC_RENDER, "img": "https://i.imgur.com/wMKE14s.jpeg", "cond": {"flag": "phase", "value": "Fire"}},
-{"action": AC_RENDER, "img": "https://i.imgur.com/ij9GR7Q.jpeg", "cond": {"flag": "phase", "value": "Ice"}},
-{"action": AC_RENDER, "img": "https://i.imgur.com/K0BNeSw.jpeg", "cond": {"flag": "phase", "value": "Lightning"}},
-{"action": AC_WAIT, time: 15000},
-{"action": AC_RENDER, "img": "https://i.imgur.com/wMKE14s.jpeg", "cond": {"flag": "phase", "value": "Fire"}},
-{"action": AC_RENDER, "img": "https://i.imgur.com/ij9GR7Q.jpeg", "cond": {"flag": "phase", "value": "Ice"}},
-{"action": AC_RENDER, "img": "https://i.imgur.com/K0BNeSw.jpeg", "cond": {"flag": "phase", "value": "Lightning"}},
-{"action": AC_WAIT, time: 47000},
-{"action": AC_END},
-{"action": AC_END}
-]
-
+<script>
 // flag storage module
 var flag_data = {}
 
