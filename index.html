@@ -84,24 +84,30 @@ async function load_tape_data(url) {
   await fetch(url)
     .then(response => response.json())
     .then(data => {
-      if (data.hasOwnProperty('flags')){
-        tapes.push({ displayName: data.displayName, tape: data.tape, flags: data.flags })
-      }
-      else {
-        tapes.push({ displayName: data.displayName, tape: data.tape })
-      }
+      tapes.push(data);
   })
 }
 
-function init_tapes() {
-  var select = document.getElementById("tape_to_use");
-  for(var i = 0; i < tapes.length; i++)
-  {
-    var option = document.createElement('option');
-    option.text = tapes[i].displayName;
-    option.value = i;
-    select.add(option, 0);
+async function init_tapes() {
+  if (tapes.length == 0) {
+    (async () => {
+      for (const url of tapes_to_load) {
+        await load_tape_data(url);
+      }
+    })().then(
+      () => {
+        var select = document.getElementById("tape_to_use");
+        for(var i = 0; i < tapes.length; i++)
+        {
+          var option = document.createElement('option');
+          option.text = tapes[i].displayName;
+          option.value = i;
+          select.add(option, 0);
+        }
+      }
+    )
   }
+
 }
 
 function img_prefetch(tape) {
@@ -201,17 +207,9 @@ function reset() {
 }
 
 async function init() {
-  await (async () => {
-    for (const url of tapes_to_load) {
-      await load_tape_data(url);
-    }
-  })().then(
-    () => {
-      init_tapes();
-      flag_init();
-      reset();
-    }
-  )
+  init_tapes();
+  flag_init();
+  reset();
 }
 
 // tape manipulator
