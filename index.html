@@ -103,6 +103,15 @@ function init_tapes() {
     select.add(option, 0);
   }
 }
+
+function img_prefetch(tape) {
+  tape.forEach(e => {
+    if(e.action == AC_RENDER)
+    var image = new Image();
+    e.src = e.img;
+  });
+}
+
 var tape = tape_EMPTY;
 function tape_select(i) {
   reset();
@@ -118,6 +127,7 @@ function tape_select(i) {
     flag_configure(tapes[i].flags);
     create_flag_dropdowns(tapes[i])
   }
+  img_prefetch(tape)
 }
 
 function tape_to_use_cb() {
