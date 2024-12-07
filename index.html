@@ -106,7 +106,7 @@ function init_tapes() {
 
 function img_prefetch(tape) {
   tape.forEach(e => {
-    if(e.action == AC_RENDER)
+    if(e.action == "AC_RENDER")
     var image = new Image();
     e.src = e.img;
   });
