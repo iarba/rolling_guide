@@ -12,7 +12,7 @@
         {"action": "AC_WAIT", "time": 13000},
         {"action": "AC_RENDER", "img": "./img/m4s/ee22.png"},
         {"action": "AC_WAIT", "time": 24000},
-        {"action": "AC_RENDER", "img": "./img/m4s/dn.png"},
+        {"action": "AC_RENDER", "img": "./img/m4s/DN.png"},
         {"action": "AC_WAIT", "time": 174000},
 
         {"action": "AC_RENDER", "img": "./img/m4s/LB_move_right.png"},
