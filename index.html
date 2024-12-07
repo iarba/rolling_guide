@@ -3,10 +3,6 @@
   <head>
     <script src="./config/constants.js"></script>
     <script src="./tapes/Empty_Tape.js"></script>
-    <script src="./tapes/M4S/M4S_MT.js"></script>
-    <script src="./tapes/M4S/M4S_OT.js"></script>  
-    <script src="./tapes/M4S/M4S_MT_ADV.js"></script>  
-    <script src="./tapes/M4S/M4S_OT_ADV.js"></script> 
   </head>
   <style>
 #loading {
@@ -50,12 +46,14 @@ var flag_data = {}
 
 // tapes to load
 var tapes_to_load = [
-  "EX1/EX1.json"
+  "./tapes/EX1/EX1.json",
+  "./tapes/M4S/M4S_MT_ADV.json",
+  "./tapes/M4S/M4S_OT_ADV.json",
+  "./tapes/M4S/M4S_OT.json",
+  "./tapes/M4S/M4S_MT.json"
 ]
 
-// empty tape data
-var tape_EX1_TEST = [];
-var flags_EX1_TEST = [];
+var tapes = [];
 
 function flag_init() {
   flag_data = { list: [], values: {}, defval: {}};
@@ -82,34 +80,27 @@ function flag_get(flag_name) {
   return flag_data.values[flag_name];
 }
 
-async function load_tape_data() {
-  for (const tape of tapes_to_load) {
-    await fetch(`./tapes/${tape}`)
+async function load_tape_data(url) {
+  await fetch(url)
     .then(response => response.json())
     .then(data => {
-      tape_EX1_TEST = data.tape_EX1_TEST;
-      flags_EX1_TEST = data.flags_EX1_TEST;
-    })
-  }
+      if (data.hasOwnProperty('flags')){
+        tapes.push({ displayName: data.displayName, tape: data.tape, flags: data.flags })
+      }
+      else {
+        tapes.push({ displayName: data.displayName, tape: data.tape })
+      }
+  })
 }
 
-var tapes = [];
 function init_tapes() {
-  if(tapes.length == 0)
+  var select = document.getElementById("tape_to_use");
+  for(var i = 0; i < tapes.length; i++)
   {
-    tapes[0] = {name: "M4S OT", tape: tape_M4S_OT};
-    tapes[1] = {name: "M4S MT", tape: tape_M4S_MT};
-    tapes[2] = {name: "M4S OT ADV", tape: tape_M4S_OT_ADV};
-    tapes[3] = {name: "M4S MT ADV", tape: tape_M4S_MT_ADV};
-    tapes[4] = {name: "Valigarmanda", tape: tape_EX1_TEST, flags: flags_EX1_TEST};
-    var select = document.getElementById("tape_to_use");
-    for(var i = 0; i < tapes.length; i++)
-    {
-      var option = document.createElement('option');
-      option.text = tapes[i].name;
-      option.value = i;
-      select.add(option, 0);
-    }
+    var option = document.createElement('option');
+    option.text = tapes[i].displayName;
+    option.value = i;
+    select.add(option, 0);
   }
 }
 var tape = tape_EMPTY;
@@ -122,7 +113,7 @@ function tape_select(i) {
   }
   else
   {
-    console.log("using tape " + i + " name [" + tapes[i].name + "]");
+    console.log("using tape " + i + " name [" + tapes[i].displayName + "]");
     tape = tapes[i].tape;
     flag_configure(tapes[i].flags);
     create_flag_dropdowns(tapes[i])
@@ -200,11 +191,17 @@ function reset() {
 }
 
 async function init() {
-  await load_tape_data().then(() => {
-    init_tapes();
-    flag_init();
-    reset();
-  })
+  await (async () => {
+    for (const url of tapes_to_load) {
+      await load_tape_data(url);
+    }
+  })().then(
+    () => {
+      init_tapes();
+      flag_init();
+      reset();
+    }
+  )
 }
 
 // tape manipulator
@@ -232,17 +229,17 @@ function move_tape(current_tape, tape_index, last_now, delta) {
   var NOW = Date.now();
   var snapshot = tape[tape_index];
   switch(snapshot.action) {
-    case AC_END:
+    case "AC_END":
 	  active_tape = 0;
 	  console.error("OK");
 	  return;
-	case AC_RENDER:
+	case "AC_RENDER":
 	  if(cond_check(snapshot))
 	  {
 	    document.getElementById('board').src = snapshot.img;
 	  }
 	  break;
-	case AC_WAIT:
+	case "AC_WAIT":
 	  if(step_skipped) {
 	    delta = snapshot.time + 1;
 	  }
@@ -258,7 +255,7 @@ function move_tape(current_tape, tape_index, last_now, delta) {
 	    return;
 	  }
 	  break;
-	case AC_RESET:
+	case "AC_RESET":
 	  reset();
 	  break;
 	default:

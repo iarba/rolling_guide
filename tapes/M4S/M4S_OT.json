@@ -1,0 +1,27 @@
+{
+    "displayName" : "M4S OT",
+    "tape" : [
+        {"action": "AC_WAIT", "time": 5000},
+        {"action": "AC_RENDER", "img": "./img/m4s/nearfar1_OT.png"},
+        {"action": "AC_WAIT", "time": 57000},
+        {"action": "AC_RENDER", "img": "./img/m4s/nearfar2_tank.png"},
+        {"action": "AC_WAIT", "time": 36000},
+        {"action": "AC_RENDER", "img": "./img/m4s/ee1_OT.png"},
+        {"action": "AC_WAIT", "time": 47000},
+        {"action": "AC_RENDER", "img": "./img/m4s/ee2.png"},
+        {"action": "AC_WAIT", "time": 40000},
+        {"action": "AC_RENDER", "img": "./img/m4s/side_OT.png"},
+        {"action": "AC_WAIT", "time": 13000},
+        {"action": "AC_RENDER", "img": "./img/m4s/ee22.png"},
+        {"action": "AC_WAIT", "time": 24000},
+
+        {"action": "AC_RENDER", "img": "./img/m4s/dn.png"},
+        {"action": "AC_WAIT", "time": 79000},
+        {"action": "AC_RENDER", "img": "./img/common/tankbuster_swap_OT.png"},
+        {"action": "AC_WAIT", "time": 10000},
+
+        {"action": "AC_RENDER", "img": "https://i.imgur.com/D57b1Uv.jpeg"},
+        {"action": "AC_END"},
+        {"action": "AC_END"}
+    ]
+}
