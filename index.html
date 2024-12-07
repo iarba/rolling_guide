@@ -6,8 +6,7 @@
     <script src="./tapes/M4S/M4S_MT.js"></script>
     <script src="./tapes/M4S/M4S_OT.js"></script>  
     <script src="./tapes/M4S/M4S_MT_ADV.js"></script>  
-    <script src="./tapes/M4S/M4S_OT_ADV.js"></script>  
-    <script src="./tapes/EX1/EX1.js"></script>   
+    <script src="./tapes/M4S/M4S_OT_ADV.js"></script> 
   </head>
   <style>
 #loading {
@@ -49,6 +48,15 @@
 // flag storage module
 var flag_data = {}
 
+// tapes to load
+var tapes_to_load = [
+  "EX1/EX1.json"
+]
+
+// empty tape data
+var tape_EX1_TEST = [];
+var flags_EX1_TEST = [];
+
 function flag_init() {
   flag_data = { list: [], values: {}, defval: {}};
 }
@@ -72,6 +80,17 @@ function flag_set(flag_name, flag_value) {
 }
 function flag_get(flag_name) {
   return flag_data.values[flag_name];
+}
+
+async function load_tape_data() {
+  for (const tape of tapes_to_load) {
+    await fetch(`./tapes/${tape}`)
+    .then(response => response.json())
+    .then(data => {
+      tape_EX1_TEST = data.tape_EX1_TEST;
+      flags_EX1_TEST = data.flags_EX1_TEST;
+    })
+  }
 }
 
 var tapes = [];
@@ -180,10 +199,12 @@ function reset() {
   flag_reset();
 }
 
-function init() {
-  init_tapes();
-  flag_init();
-  reset();
+async function init() {
+  await load_tape_data().then(() => {
+    init_tapes();
+    flag_init();
+    reset();
+  })
 }
 
 // tape manipulator
