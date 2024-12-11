@@ -2,7 +2,6 @@
 <html>
   <head>
     <script src="./config/constants.js"></script>
-    <script src="./tapes/Empty_Tape.js"></script>
   </head>
   <style>
 #loading {
@@ -37,12 +36,15 @@
       <div id="bar">0%</div>
     </div>
     
-    <img id="board" src="https://i.imgur.com/cliDn19.jpeg" style="float: left; display: block; margin: auto; height: 876px; max-width: 100%; max-height: 100%; width: 100%">
+    <img id="board" src="https://i.imgur.com/cliDn19.jpeg" onclick="skip_step()" style="float: left; display: block; margin: auto; height: 876px; max-width: 100%; max-height: 100%; width: 100%">
   </body>
 
 <script>
+
+let VERSION = 7;
+
 // flag storage module
-var flag_data = {}
+var flag_data = {};
 
 // tapes to load
 var tapes_to_load = [
@@ -50,40 +52,77 @@ var tapes_to_load = [
   "./tapes/M4S/M4S_MT_ADV.json",
   "./tapes/M4S/M4S_OT_ADV.json",
   "./tapes/M4S/M4S_OT.json",
+  "./tapes/FRU/FRU.json",
   "./tapes/M4S/M4S_MT.json"
 ]
 
 var tapes = [];
 
 function flag_init() {
-  flag_data = { list: [], values: {}, defval: {}};
+  flag_data = { list: [], values: {}, defval: {}, persist: {}};
 }
+
 function flag_reset() {
-  flag_data.list.forEach(e => { 
-	flag_data.values[e] = flag_data.defval[e];
+  flag_data.list.forEach(e => {
+    if(!flag_data.persist[e]) {
+      if(flag_data.defval[e] != undefined) {
+        flag_set(e, flag_data.defval[e]);
+      }
+    }
   });
 }
+
 function flag_configure(flag_config) {
   flag_init()
   if(flag_config) {
     flag_config.forEach(e => { 
       flag_data.list.push(e.name);
-      flag_data.defval[e.name] = e.default
-	})
+      flag_data.defval[e.name] = e.default;
+      if(e.default) {
+        flag_set(e.name, e.default);
+      }
+      flag_data.persist[e.name] = e.persist;
+    })
   }
   flag_reset();
 }
+
 function flag_set(flag_name, flag_value) {
   flag_data.values[flag_name] = flag_value;
+  set_flag_dropdown_value(flag_name, flag_value);
 }
+
 function flag_get(flag_name) {
   return flag_data.values[flag_name];
 }
 
 async function load_tape_data(url) {
-  await fetch(url)
+  await fetch(url, {cache: "no-cache"})
     .then(response => response.json())
     .then(data => {
+      data.tape.forEach(function(e, index, arr) {
+        switch(e.action) {
+          case "END":
+          case "AC_END":
+            arr[index].action = AC_END;
+            break;
+          case "RENDER":
+          case "AC_RENDER":
+            arr[index].action = AC_RENDER;
+            break;
+          case "WAIT":
+          case "AC_WAIT":
+            arr[index].action = AC_WAIT;
+            break;
+          case "RESET":
+          case "AC_RESET":
+            arr[index].action = AC_RESET;
+            break;
+          default:
+            console.error("Unrecognised action", e.action);
+            break;
+        }
+      });
       tapes.push(data);
   })
 }
@@ -111,28 +150,42 @@ async function init_tapes() {
 
 function img_prefetch(tape) {
   tape.forEach(e => {
-    if(e.action == "AC_RENDER")
-    var image = new Image();
-    e.src = e.img;
+    if(e.action == AC_RENDER) {
+      var image = new Image();
+      image.src = e.img;
+    }
   });
 }
+
+var tape_EMPTY = [
+  {"action": AC_RENDER, "img": "https://i.imgur.com/D57b1Uv.jpeg"},
+  {"action": AC_END},
+  {"action": AC_END}
+];
 
 var tape = tape_EMPTY;
 function tape_select(i) {
   reset();
-  if(i == -1)
-  {
-    console.log("using empty tape");
+  if(i == -1) {
+    console.warn("using empty tape");
     tape = tape_EMPTY;
   }
-  else
-  {
+  else {
     console.log("using tape " + i + " name [" + tapes[i].displayName + "]");
+    if(tapes[i].version) {
+      if(tapes[i].version != VERSION) {
+        console.error("Mismatch version, ours: " + VERSION + ", tape " + tapes[i].displayName + ": " + tapes[i].version);
+      } else {
+        console.log("tape " + tapes[i].displayName + " passed version check");
+      }
+    } else {
+      console.error("tape " + tapes[i].displayName + " has no version field");
+    }
     tape = tapes[i].tape;
+    create_flag_dropdowns(tapes[i]);
     flag_configure(tapes[i].flags);
-    create_flag_dropdowns(tapes[i])
   }
-  img_prefetch(tape)
+  img_prefetch(tape);
 }
 
 function tape_to_use_cb() {
@@ -140,21 +193,21 @@ function tape_to_use_cb() {
   tape_select(select.value);
 }
 
-function flag_dropdown_cb(flag_name){
+function flag_dropdown_cb(flag_name) {
   let select = document.getElementById("flag_dropdown_id_" + flag_name);
   flag_set(flag_name, select[select.value].text);
 }
 
-var flags = []
+var flags = [];
 
 function create_flag_dropdowns(tape) {
   clear_flag_dropdowns();
   if (tape?.flags === undefined) {
-    console.log("using empty flags");
+    console.warn("using empty flags");
     flags = [];
   }
   else {
-    console.log("using flags for " + tape.name);
+    console.log("using flags for " + tape.displayName);
     flags = tape.flags;
     set_flag_dropdowns(flags);
   }
@@ -167,6 +220,20 @@ function clear_flag_dropdowns() {
   }
 }
 
+function set_flag_dropdown_value(flag_name, flag_value) {
+  console.log("setting flag name " + flag_name + " to " + flag_value);
+  let select = document.getElementById("flag_dropdown_id_" + flag_name);
+  var children = select.children;
+  for(var i = 0; i < children.length; i++) {
+    if(children[i].text == flag_value)
+    {
+      select.value = children[i].value;
+      return;
+    }
+  }
+  console.warn("failed to set flag name " + flag_name + " to " + flag_value);
+}
+
 function set_flag_dropdowns(flags) {
   let dropdowns = document.getElementById("flags_form");
   for(var i = 0; i < flags.length; i++) {
@@ -176,7 +243,7 @@ function set_flag_dropdowns(flags) {
     dropdowns.appendChild(dropdownName);
 
     var select = document.createElement('select');
-    select.onchange = flag_dropdown_cb.bind(null, flags[i].name); //"flag_dropdown_cb(\"" + flags[i].name + "\")"
+    select.onchange = flag_dropdown_cb.bind(null, flags[i].name);
     select.id = "flag_dropdown_id_" + flags[i].name;
     for (var j = 0; j < flags[i].values.length; j++) {
       var option = document.createElement('option');
@@ -236,17 +303,17 @@ function move_tape(current_tape, tape_index, last_now, delta) {
   var NOW = Date.now();
   var snapshot = tape[tape_index];
   switch(snapshot.action) {
-    case "AC_END":
+    case AC_END:
 	  active_tape = 0;
-	  console.error("OK");
+	  console.log("OK");
 	  return;
-	case "AC_RENDER":
+	case AC_RENDER:
 	  if(cond_check(snapshot))
 	  {
 	    document.getElementById('board').src = snapshot.img;
 	  }
 	  break;
-	case "AC_WAIT":
+	case AC_WAIT:
 	  if(step_skipped) {
 	    delta = snapshot.time + 1;
 	  }
@@ -262,12 +329,12 @@ function move_tape(current_tape, tape_index, last_now, delta) {
 	    return;
 	  }
 	  break;
-	case "AC_RESET":
+	case AC_RESET:
 	  reset();
 	  break;
 	default:
 	  console.error("unrecognised action ", snapshot.action);
-	  return;
+	  break;
   }
   move_tape(current_tape, tape_index + 1, NOW, 0);
 }
@@ -279,9 +346,11 @@ function start_tape () {
   active_tape = last_tape_id;
   move_tape(last_tape_id, 0, Date.now(), 0);
 };
+
 function stop_tape () {
   active_tape = 0;
 }
+
 function skip_step () {
   step_skipped = true;
 }
