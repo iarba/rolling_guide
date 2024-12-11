@@ -1,5 +1,6 @@
 {
     "displayName" : "Valigarmanda",
+    "version": 5,
     "flags" : [
         {"name": "phase", "values": ["Fire", "Ice", "Lightning"], "default": "Fire"},
         {"name": "TEST", "values": ["asd", "qwe"]}

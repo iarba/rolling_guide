@@ -41,6 +41,8 @@
 
 <script>
 
+let VERSION = 7;
+
 // flag storage module
 var flag_data = {};
 
@@ -63,7 +65,9 @@ function flag_init() {
 function flag_reset() {
   flag_data.list.forEach(e => {
     if(!flag_data.persist[e]) {
-      flag_set(e, flag_data.defval[e]);
+      if(flag_data.defval[e] != undefined) {
+        flag_set(e, flag_data.defval[e]);
+      }
     }
   });
 }
@@ -168,6 +172,15 @@ function tape_select(i) {
   }
   else {
     console.log("using tape " + i + " name [" + tapes[i].displayName + "]");
+    if(tapes[i].version) {
+      if(tapes[i].version != VERSION) {
+        console.error("Mismatch version, ours: " + VERSION + ", tape " + tapes[i].displayName + ": " + tapes[i].version);
+      } else {
+        console.log("tape " + tapes[i].displayName + " passed version check");
+      }
+    } else {
+      console.error("tape " + tapes[i].displayName + " has no version field");
+    }
     tape = tapes[i].tape;
     create_flag_dropdowns(tapes[i]);
     flag_configure(tapes[i].flags);

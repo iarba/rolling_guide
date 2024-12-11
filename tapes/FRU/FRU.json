@@ -1,5 +1,6 @@
 {
     "displayName" : "FRU",
+    "version": 7,
     "flags" : [
         {"name": "class", "values": ["MT", "OT", "H1", "H2", "M1", "M2", "R1", "R2"], "default": "OT", "comment": "author bias for default value :>", "persist": true}
     ],
