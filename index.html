@@ -114,6 +114,9 @@ async function load_tape_data(url) {
           case "AC_RESET":
             arr[index].action = AC_RESET;
             break;
+          default:
+            console.error("Unrecognised action", e.action);
+            break;
         }
       });
       tapes.push(data);
@@ -318,7 +321,7 @@ function move_tape(current_tape, tape_index, last_now, delta) {
 	  break;
 	default:
 	  console.error("unrecognised action ", snapshot.action);
-	  return;
+	  break;
   }
   move_tape(current_tape, tape_index + 1, NOW, 0);
 }
