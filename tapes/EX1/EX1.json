@@ -2,7 +2,7 @@
     "displayName" : "Valigarmanda",
     "flags" : [
         {"name": "phase", "values": ["Fire", "Ice", "Lightning"], "default": "Fire"},
-        {"name": "TEST", "values": ["Test1", "Test2"], "default": "Test1"}
+        {"name": "TEST", "values": ["asd", "qwe"]}
     ],
     "tape" : [
         {"action": "AC_WAIT", "time": 5000},
