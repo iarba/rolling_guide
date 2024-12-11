@@ -160,7 +160,7 @@ var tape = tape_EMPTY;
 function tape_select(i) {
   reset();
   if(i == -1) {
-    console.log("using empty tape");
+    console.warn("using empty tape");
     tape = tape_EMPTY;
   }
   else {
@@ -187,7 +187,7 @@ var flags = [];
 function create_flag_dropdowns(tape) {
   clear_flag_dropdowns();
   if (tape?.flags === undefined) {
-    console.log("using empty flags");
+    console.warn("using empty flags");
     flags = [];
   }
   else {
@@ -205,7 +205,7 @@ function clear_flag_dropdowns() {
 }
 
 function set_flag_dropdown_value(flag_name, flag_value) {
-  console.warn("setting flag name " + flag_name + " to " + flag_value);
+  console.log("setting flag name " + flag_name + " to " + flag_value);
   let select = document.getElementById("flag_dropdown_id_" + flag_name);
   var children = select.children;
   for(var i = 0; i < children.length; i++) {
@@ -289,7 +289,7 @@ function move_tape(current_tape, tape_index, last_now, delta) {
   switch(snapshot.action) {
     case AC_END:
 	  active_tape = 0;
-	  console.error("OK");
+	  console.log("OK");
 	  return;
 	case AC_RENDER:
 	  if(cond_check(snapshot))
