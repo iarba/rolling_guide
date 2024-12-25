@@ -1,6 +1,8 @@
 {
     "displayName" : "FRU",
-    "version": 7,
+    "api": 8,
+    "version": 1,
+	"versionStr": "LPDU",
     "flags" : [
         {"name": "class", "values": ["MT", "OT", "H1", "H2", "M1", "M2", "R1", "R2"], "default": "OT", "comment": "author bias for default value :>", "persist": true}
     ],
@@ -12,9 +14,11 @@
         {"action": "WAIT", "time": 35000, "comment": "boss goes invuln, DD begin"},
         {"action": "RENDER", "img": "img/fru/DD.png"},
         {"action": "WAIT", "time": 38000, "comment": "boss targetable, line stack -> mirror"},
-        {"action": "RENDER", "img": "img/fru/mirror_OT.png", "cond": {"flag": "class", "value": "OT"}},
+        {"action": "RENDER", "img": "img/fru/mirror.png", "cond": {"flag": "class", "value": "OT"}},
+        {"action": "RENDER", "img": "img/fru/mirror.png", "cond": {"flag": "class", "value": "MT"}},
         {"action": "WAIT", "time": 45000, "comment": "LR begin"},
         {"action": "RENDER", "img": "img/fru/LR_OT.png", "cond": {"flag": "class", "value": "OT"}},
+        {"action": "RENDER", "img": "img/fru/LR_MT.png", "cond": {"flag": "class", "value": "MT"}},
         {"action": "RENDER", "img": "img/fru/LR_H2.png", "cond": {"flag": "class", "value": "H2"}},
         {"action": "WAIT", "time": 15000, "comment": "boss goes invuln, LR"},
         {"action": "END"},

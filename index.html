@@ -41,7 +41,7 @@
 
 <script>
 
-let VERSION = 7;
+let API_VERSION = 8;
 
 // flag storage module
 var flag_data = {};
@@ -172,14 +172,14 @@ function tape_select(i) {
   }
   else {
     console.log("using tape " + i + " name [" + tapes[i].displayName + "]");
-    if(tapes[i].version) {
-      if(tapes[i].version != VERSION) {
-        console.error("Mismatch version, ours: " + VERSION + ", tape " + tapes[i].displayName + ": " + tapes[i].version);
+    if(tapes[i].api) {
+      if(tapes[i].api != API_VERSION) {
+        console.error("Mismatch api version, ours: " + API_VERSION + ", tape " + tapes[i].displayName + ": " + tapes[i].api);
       } else {
-        console.log("tape " + tapes[i].displayName + " passed version check");
+        console.log("tape " + tapes[i].displayName + " passed api version check");
       }
     } else {
-      console.error("tape " + tapes[i].displayName + " has no version field");
+      console.error("tape " + tapes[i].displayName + " has no api version field");
     }
     tape = tapes[i].tape;
     create_flag_dropdowns(tapes[i]);
