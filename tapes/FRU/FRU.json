@@ -22,10 +22,10 @@
         {"action": "RENDER", "img": "img/fru/LR_H2.png", "cond": {"flag": "class", "value": "H2"}},
         {"action": "WAIT", "time": 15000, "comment": "boss goes invuln, LR"},
         {"action": "WAIT", "time": 240000, "comment": "p2 END. pls press skip"},
-        {"action": "RENDER", "img": "img/fru/UR_sup.png", "cond": {"flag": "class", "value": "MT"}},
-        {"action": "RENDER", "img": "img/fru/UR_sup.png", "cond": {"flag": "class", "value": "OT"}},
-        {"action": "RENDER", "img": "img/fru/UR_sup.png", "cond": {"flag": "class", "value": "H1"}},
-        {"action": "RENDER", "img": "img/fru/UR_sup.png", "cond": {"flag": "class", "value": "H2"}},
+        {"action": "RENDER", "img": "img/fru/UR_MT.png", "cond": {"flag": "class", "value": "MT"}},
+        {"action": "RENDER", "img": "img/fru/UR_OT.png", "cond": {"flag": "class", "value": "OT"}},
+        {"action": "RENDER", "img": "img/fru/UR_MT.png", "cond": {"flag": "class", "value": "H1"}},
+        {"action": "RENDER", "img": "img/fru/UR_OT.png", "cond": {"flag": "class", "value": "H2"}},
         {"action": "END"},
         {"action": "END"}
     ]
