@@ -24,8 +24,8 @@
         {"action": "WAIT", "time": 240000, "comment": "p2 END. pls press skip"},
         {"action": "RENDER", "img": "img/fru/UR_MT.png", "cond": {"flag": "class", "value": "MT"}},
         {"action": "RENDER", "img": "img/fru/UR_OT.png", "cond": {"flag": "class", "value": "OT"}},
-        {"action": "RENDER", "img": "img/fru/UR_MT.png", "cond": {"flag": "class", "value": "H1"}},
-        {"action": "RENDER", "img": "img/fru/UR_OT.png", "cond": {"flag": "class", "value": "H2"}},
+        {"action": "WAIT", "time": 80000, "comment": "APOC begin"},
+        {"action": "RENDER", "img": "img/fru/APOC.png"},
         {"action": "END"},
         {"action": "END"}
     ]
